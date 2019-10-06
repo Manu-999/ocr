@@ -36,7 +36,6 @@ app.post('/upload', (req, res) => {
         data: { text }
       } = await worker.recognize(`./uploads/${req.file.originalname}`);
       res.send(text);
-
       await worker.terminate();
     })();
   });
