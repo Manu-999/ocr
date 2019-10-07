@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
-const fs = require('fs');
 const multer = require('multer');
+const fs = require('fs');
 const { createWorker } = require('tesseract.js');
 const worker = createWorker({
   logger: m => console.log(m)
@@ -35,7 +35,23 @@ app.post('/upload', (req, res) => {
       const {
         data: { text }
       } = await worker.recognize(`./uploads/${req.file.originalname}`);
-      res.send(text);
+      console.log(text);
+
+      const { data } = await worker.getPDF('Tesseract OCR Result');
+      fs.writeFileSync('tesseract-ocr-result.pdf', Buffer.from(data));
+
+      const fileName = req.body.file;
+
+      const stat = fs.statSync('./tesseract-ocr-result.pdf');
+      const file = fs.createReadStream('./tesseract-ocr-result.pdf');
+
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=${fileName}.pdf`
+      );
+      file.pipe(res);
+
       await worker.terminate();
     })();
   });
